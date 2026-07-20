@@ -8,7 +8,7 @@ Notch is a native macOS audio splitter for importing local media or YouTube
 audio, selecting multiple regions directly on a waveform, previewing them, and
 exporting each clip as a separate file.
 
-![Notch editor with two selected audio clips](docs/screenshots/notch-clips.png)
+![Notch editor with two selected audio clips](Screenshots/notch-clips.png)
 
 ## Features
 
@@ -32,7 +32,7 @@ exporting each clip as a separate file.
 
 | Start screen | Settings |
 | --- | --- |
-| ![Notch start screen](docs/screenshots/notch-start.png) | ![Notch settings](docs/screenshots/notch-settings.png) |
+| ![Notch start screen](Screenshots/notch-start.png) | ![Notch settings](Screenshots/notch-settings.png) |
 
 ## Requirements
 
