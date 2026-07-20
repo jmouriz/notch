@@ -3,7 +3,13 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleDevelopmentRegion</key>
-    <string>es</string>
+    <string>en</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>en</string>
+        <string>es</string>
+        <string>pt</string>
+    </array>
     <key>CFBundleDisplayName</key>
     <string>Notch</string>
     <key>CFBundleExecutable</key>
@@ -23,7 +29,7 @@
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>NSHumanReadableCopyright</key>
-    <string>© 2026 Juan Manuel Mouriz. Licencia MIT.</string>
+    <string>© 2026 Juan Manuel Mouriz. MIT License.</string>
     <key>CFBundleDocumentTypes</key>
     <array>
         <dict>

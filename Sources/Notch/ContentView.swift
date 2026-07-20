@@ -14,20 +14,25 @@ struct ContentView: View {
             case .recent:
                 ProjectLibraryView(
                     store: store,
-                    title: "Recientes",
-                    description: "Proyectos de Notch abiertos o guardados recientemente.",
+                    destination: .recent,
+                    titleKey: "library.recent",
+                    descriptionKey: "library.recent_description",
                     entries: store.recentProjects
                 )
             case .conserved:
                 ProjectLibraryView(
                     store: store,
-                    title: "Conservados",
-                    description: "Proyectos fijados para mantenerlos siempre a mano.",
+                    destination: .conserved,
+                    titleKey: "library.conserved",
+                    descriptionKey: "library.conserved_description",
                     entries: store.conservedProjects
                 )
             }
         }
         .tint(NotchPalette.accent)
+        .onChange(of: store.preferences.language) {
+            store.languageDidChange()
+        }
     }
 }
 
@@ -61,18 +66,18 @@ private struct LibrarySidebar: View {
 
     var body: some View {
         List(selection: $store.librarySelection) {
-            Section("Biblioteca") {
-                Label("Proyecto actual", systemImage: "waveform.path")
+            Section(store.t("library.title")) {
+                Label(store.t("library.current_project"), systemImage: "waveform.path")
                     .tag(LibraryDestination.current)
-                Label("Recientes", systemImage: "clock")
+                Label(store.t("library.recent"), systemImage: "clock")
                     .badge(store.recentProjects.count)
                     .tag(LibraryDestination.recent)
-                Label("Conservados", systemImage: "pin")
+                Label(store.t("library.conserved"), systemImage: "pin")
                     .badge(store.conservedProjects.count)
                     .tag(LibraryDestination.conserved)
             }
 
-            Section("Fuente actual") {
+            Section(store.t("library.current_source")) {
                 if store.hasLoadedSource {
                     VStack(alignment: .leading, spacing: 5) {
                         RoundedRectangle(cornerRadius: 10)
@@ -100,7 +105,7 @@ private struct LibrarySidebar: View {
                     }
                     .padding(.vertical, 5)
                 } else {
-                    Label("Ninguna fuente cargada", systemImage: "waveform.slash")
+                    Label(store.t("library.no_source"), systemImage: "waveform.slash")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .padding(.vertical, 5)
@@ -114,22 +119,23 @@ private struct LibrarySidebar: View {
 
 private struct ProjectLibraryView: View {
     @Bindable var store: EditorStore
-    let title: String
-    let description: String
+    let destination: LibraryDestination
+    let titleKey: String
+    let descriptionKey: String
     let entries: [ProjectCatalogEntry]
 
     var body: some View {
         VStack(spacing: 0) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
+                    Text(store.t(titleKey))
                         .font(.largeTitle.bold())
-                    Text(description)
+                    Text(store.t(descriptionKey))
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
                 Button(action: store.openProject) {
-                    Label("Abrir proyecto…", systemImage: "folder")
+                    Label(store.t("library.open_project"), systemImage: "folder")
                 }
                 .buttonStyle(.borderedProminent)
             }
@@ -139,12 +145,14 @@ private struct ProjectLibraryView: View {
 
             if entries.isEmpty {
                 ContentUnavailableView(
-                    title,
-                    systemImage: title == "Conservados" ? "pin.slash" : "clock",
+                    store.t(titleKey),
+                    systemImage: destination == .conserved ? "pin.slash" : "clock",
                     description: Text(
-                        title == "Conservados"
-                            ? "Fijá un proyecto desde Recientes para conservarlo."
-                            : "Los proyectos que guardes o abras aparecerán acá."
+                        store.t(
+                            destination == .conserved
+                                ? "library.empty_conserved"
+                                : "library.empty_recent"
+                        )
                     )
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -204,7 +212,7 @@ private struct ProjectCatalogRow: View {
                 Image(systemName: entry.isConserved ? "pin.fill" : "pin")
             }
             .buttonStyle(.borderless)
-            .help(entry.isConserved ? "Quitar de Conservados" : "Conservar proyecto")
+            .help(store.t(entry.isConserved ? "library.unpin" : "library.pin"))
 
             Button {
                 store.revealCatalogEntry(entry)
@@ -212,7 +220,7 @@ private struct ProjectCatalogRow: View {
                 Image(systemName: "magnifyingglass")
             }
             .buttonStyle(.borderless)
-            .help("Mostrar en Finder")
+            .help(store.t("library.reveal"))
 
             Button {
                 store.removeCatalogEntry(entry)
@@ -220,7 +228,7 @@ private struct ProjectCatalogRow: View {
                 Image(systemName: "xmark")
             }
             .buttonStyle(.borderless)
-            .help("Quitar de la biblioteca")
+            .help(store.t("library.remove"))
         }
         .padding(.vertical, 8)
     }
@@ -236,14 +244,14 @@ private struct EmptyEditorView: View {
                 .foregroundStyle(NotchPalette.accent)
 
             VStack(spacing: 5) {
-                Text("Cargá un audio para comenzar")
+                Text(store.t("editor.load_title"))
                     .font(.title2.bold())
-                Text("Pegá una dirección arriba o seleccioná un archivo de tu Mac.")
+                Text(store.t("editor.load_description"))
                     .foregroundStyle(.secondary)
             }
 
             Button(action: store.chooseLocalFile) {
-                Label("Abrir archivo…", systemImage: "folder")
+                Label(store.t("editor.open_file"), systemImage: "folder")
             }
             .buttonStyle(.borderedProminent)
             .disabled(store.isImporting || store.isExporting)
@@ -269,7 +277,7 @@ private struct SourceBar: View {
         HStack(spacing: 10) {
             Image(systemName: "link")
                 .foregroundStyle(.secondary)
-            TextField("Pegá una dirección de YouTube u otra fuente compatible", text: $store.sourceURL)
+            TextField(store.t("editor.url_placeholder"), text: $store.sourceURL)
                 .textFieldStyle(.plain)
                 .disabled(store.isImporting || store.isExporting)
                 .onSubmit(store.importRemoteSource)
@@ -294,7 +302,7 @@ private struct SourceBar: View {
                 )
 
             Button(action: store.chooseLocalFile) {
-                Label("Abrir archivo", systemImage: "folder")
+                Label(store.t("editor.open_file_short"), systemImage: "folder")
             }
             .buttonStyle(.bordered)
             .disabled(store.isImporting || store.isExporting)
@@ -304,9 +312,9 @@ private struct SourceBar: View {
     }
 
     private var importButtonTitle: String {
-        guard store.isImporting else { return "Importar" }
-        guard let progress = store.importProgress else { return "Importando…" }
-        return "Importando \(Int(progress * 100))%"
+        guard store.isImporting else { return store.t("editor.import") }
+        guard let progress = store.importProgress else { return store.t("editor.importing") }
+        return store.t("editor.importing_percent", Int(progress * 100))
     }
 }
 
@@ -321,7 +329,7 @@ private struct EditorHeader: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            .help(store.isPlaying ? "Pausar" : "Reproducir")
+            .help(store.t(store.isPlaying ? "editor.pause" : "editor.play"))
 
             Text(Timecode.string(from: store.playhead))
                 .font(.system(.title3, design: .monospaced, weight: .medium))
@@ -331,7 +339,7 @@ private struct EditorHeader: View {
             Spacer()
 
             Button(action: store.addRegionAtPlayhead) {
-                Label("Nueva región", systemImage: "plus")
+                Label(store.t("editor.new_region"), systemImage: "plus")
             }
 
             Image(systemName: "minus.magnifyingglass")
@@ -352,7 +360,7 @@ private struct ClipList: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("Recortes")
+                Text(store.t("clips.title"))
                     .font(.title3.bold())
                 Text("\(store.regions.count)")
                     .font(.caption.bold())
@@ -361,17 +369,17 @@ private struct ClipList: View {
                     .background(.quaternary, in: Capsule())
 
                 Button(action: store.addRegionAtPlayhead) {
-                    Label("Nuevo recorte", systemImage: "plus")
+                    Label(store.t("clips.new"), systemImage: "plus")
                 }
                 .buttonStyle(.bordered)
-                .help("Crear un recorte en la posición actual")
+                .help(store.t("clips.new_help"))
 
                 Spacer()
 
-                Text("Nombre base")
+                Text(store.t("clips.base_name"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                TextField("Nombre del proyecto", text: $store.projectName)
+                TextField(store.t("clips.project_placeholder"), text: $store.projectName)
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 260)
 
@@ -394,7 +402,10 @@ private struct ClipList: View {
                 .disabled(store.isExporting)
                 .help(
                     store.exportDirectoryURL?.path(percentEncoded: false)
-                        ?? "Predeterminado: \(store.preferences.exportDirectoryURL.path(percentEncoded: false))"
+                        ?? store.t(
+                            "clips.default_destination",
+                            store.preferences.exportDirectoryURL.path(percentEncoded: false)
+                        )
                 )
 
                 Button(action: store.exportRegions) {
@@ -411,9 +422,9 @@ private struct ClipList: View {
 
             if store.regions.isEmpty {
                 ContentUnavailableView(
-                    "Todavía no hay recortes",
+                    store.t("clips.empty_title"),
                     systemImage: "selection.pin.in.out",
-                    description: Text("Creá una región desde la línea de tiempo o en la posición del cabezal.")
+                    description: Text(store.t("clips.empty_description"))
                 )
                 .frame(maxHeight: .infinity)
             } else {
@@ -433,9 +444,9 @@ private struct ClipList: View {
 
     private var exportButtonTitle: String {
         if store.isExporting {
-            return "Exportando \(Int(store.exportProgress * 100))%"
+            return store.t("clips.export_percent", Int(store.exportProgress * 100))
         }
-        return "Exportar \(store.regions.filter(\.isEnabled).count)"
+        return store.t("clips.export_count", store.regions.filter(\.isEnabled).count)
     }
 }
 
@@ -472,7 +483,7 @@ private struct ClipRow: View {
                 .foregroundStyle(.secondary)
 
             TextField(
-                "Nombre del recorte",
+                store.t("clips.name_placeholder"),
                 text: Binding(
                     get: { region.name },
                     set: { value in
@@ -487,7 +498,7 @@ private struct ClipRow: View {
 
             TimeField(
                 value: region.start,
-                accessibilityLabel: "Inicio",
+                accessibilityLabel: store.t("clips.start"),
                 onCommit: { store.setRegionBounds(id: region.id, start: $0) }
             )
 
@@ -496,7 +507,7 @@ private struct ClipRow: View {
 
             TimeField(
                 value: region.end,
-                accessibilityLabel: "Fin",
+                accessibilityLabel: store.t("clips.end"),
                 onCommit: { store.setRegionBounds(id: region.id, end: $0) }
             )
 
@@ -519,7 +530,7 @@ private struct ClipRow: View {
                 Image(systemName: "play.fill")
             }
             .buttonStyle(.borderless)
-            .help("Previsualizar recorte")
+            .help(store.t("clips.preview"))
 
             Button(role: .destructive) {
                 store.deleteRegion(region.id)
@@ -527,7 +538,7 @@ private struct ClipRow: View {
                 Image(systemName: "trash")
             }
             .buttonStyle(.borderless)
-            .help("Eliminar recorte")
+            .help(store.t("clips.delete"))
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 9)

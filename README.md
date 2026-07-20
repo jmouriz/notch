@@ -21,6 +21,8 @@ previsualizarlos y exportarlos como archivos independientes.
 - Proyectos JSON con extensión `.notch`.
 - Biblioteca persistente de proyectos recientes y conservados.
 - Configuración nativa para caché, biblioteca y exportaciones.
+- Interfaz en inglés, español y portugués, con detección automática del idioma
+  de macOS y selección manual desde Configuración.
 
 ## Requisitos
 
@@ -46,8 +48,8 @@ swift test
 ```
 
 Las pruebas cubren importación, caché, reproducción, selección temporal,
-proyectos, biblioteca, preferencias y exportaciones reales en los tres
-formatos.
+proyectos, biblioteca, preferencias, traducciones y exportaciones reales en
+los tres formatos.
 
 ## Crear la aplicación y el DMG
 

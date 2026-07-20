@@ -14,11 +14,11 @@ enum AudioOutputFormat: String, CaseIterable, Codable, Identifiable, Sendable {
     var qualityDescription: String {
         switch self {
         case .m4a:
-            return "AAC · Calidad alta"
+            return L10n.string("quality.m4a")
         case .mp3:
-            return "VBR · Calidad alta"
+            return L10n.string("quality.mp3")
         case .wav:
-            return "PCM · 16 bits"
+            return L10n.string("quality.wav")
         }
     }
 }
@@ -33,22 +33,22 @@ enum ExportNamingConvention: String, CaseIterable, Codable, Identifiable, Sendab
     var displayName: String {
         switch self {
         case .baseDashClip:
-            return "Nombre base - Nombre recorte"
+            return L10n.string("naming.base_dash_clip")
         case .clipParenthesizedBase:
-            return "Nombre recorte (Nombre base)"
+            return L10n.string("naming.clip_parenthesized_base")
         case .baseFolderClip:
-            return "Nombre base / Nombre recorte"
+            return L10n.string("naming.base_folder_clip")
         }
     }
 
     var example: String {
         switch self {
         case .baseDashClip:
-            return "Mis historias - Don Heraclio"
+            return L10n.string("naming.example.base_dash_clip")
         case .clipParenthesizedBase:
-            return "Don Heraclio (Mis historias)"
+            return L10n.string("naming.example.clip_parenthesized_base")
         case .baseFolderClip:
-            return "Mis historias/Don Heraclio"
+            return L10n.string("naming.example.base_folder_clip")
         }
     }
 }
@@ -70,6 +70,11 @@ final class AppPreferences {
     }
     var namingConvention: ExportNamingConvention {
         didSet { userDefaults.set(namingConvention.rawValue, forKey: Keys.namingConvention) }
+    }
+    var language: AppLanguage {
+        didSet {
+            userDefaults.set(language.rawValue, forKey: L10n.languageDefaultsKey)
+        }
     }
 
     @ObservationIgnored private let userDefaults: UserDefaults
@@ -103,11 +108,14 @@ final class AppPreferences {
         namingConvention = ExportNamingConvention(
             rawValue: userDefaults.string(forKey: Keys.namingConvention) ?? ""
         ) ?? .baseDashClip
+        language = AppLanguage(
+            rawValue: userDefaults.string(forKey: L10n.languageDefaultsKey) ?? ""
+        ) ?? .system
     }
 
     func chooseCacheDirectory() {
         if let url = chooseDirectory(
-            title: "Carpeta de caché",
+            title: L10n.string("settings.cache_folder", language: language),
             current: cacheDirectoryURL
         ) {
             cacheDirectoryURL = url
@@ -116,7 +124,7 @@ final class AppPreferences {
 
     func chooseLibraryDirectory() {
         if let url = chooseDirectory(
-            title: "Carpeta de la biblioteca",
+            title: L10n.string("settings.library_folder", language: language),
             current: libraryDirectoryURL
         ) {
             libraryDirectoryURL = url
@@ -125,7 +133,7 @@ final class AppPreferences {
 
     func chooseExportDirectory() {
         if let url = chooseDirectory(
-            title: "Carpeta de exportación",
+            title: L10n.string("settings.export_folder", language: language),
             current: exportDirectoryURL
         ) {
             exportDirectoryURL = url
@@ -177,7 +185,7 @@ final class AppPreferences {
     private func chooseDirectory(title: String, current: URL) -> URL? {
         let panel = NSOpenPanel()
         panel.title = title
-        panel.prompt = "Seleccionar"
+        panel.prompt = L10n.string("settings.select", language: language)
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.canCreateDirectories = true

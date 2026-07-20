@@ -8,37 +8,46 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section("Carpetas predeterminadas") {
+            Section(t("settings.general")) {
+                Picker(t("settings.language"), selection: $preferences.language) {
+                    Text(t("language.system")).tag(AppLanguage.system)
+                    Text(t("language.english")).tag(AppLanguage.english)
+                    Text(t("language.spanish")).tag(AppLanguage.spanish)
+                    Text(t("language.portuguese")).tag(AppLanguage.portuguese)
+                }
+            }
+
+            Section(t("settings.default_folders")) {
                 folderRow(
-                    title: "Caché",
+                    title: t("settings.cache"),
                     url: preferences.cacheDirectoryURL,
                     choose: preferences.chooseCacheDirectory
                 )
                 folderRow(
-                    title: "Biblioteca",
+                    title: t("settings.library"),
                     url: preferences.libraryDirectoryURL,
                     choose: preferences.chooseLibraryDirectory
                 )
                 folderRow(
-                    title: "Exportación",
+                    title: t("settings.export"),
                     url: preferences.exportDirectoryURL,
                     choose: preferences.chooseExportDirectory
                 )
             }
 
-            Section("Caché de medios") {
+            Section(t("settings.media_cache")) {
                 HStack {
-                    Text("Uso actual")
+                    Text(t("settings.current_usage"))
                     Spacer()
                     Text(ByteCountFormatter.string(
                         fromByteCount: cacheSize,
                         countStyle: .file
                     ))
                     .foregroundStyle(.secondary)
-                    Button("Abrir") {
+                    Button(t("settings.open")) {
                         preferences.openDirectory(preferences.cacheDirectoryURL)
                     }
-                    Button("Limpiar…", role: .destructive) {
+                    Button(t("settings.clear"), role: .destructive) {
                         showsClearCacheConfirmation = true
                     }
                 }
@@ -49,20 +58,20 @@ struct SettingsView: View {
                 }
             }
 
-            Section("Exportación") {
-                Picker("Formato de salida", selection: $preferences.outputFormat) {
+            Section(t("settings.export")) {
+                Picker(t("settings.output_format"), selection: $preferences.outputFormat) {
                     ForEach(AudioOutputFormat.allCases) { format in
                         Text(format.displayName).tag(format)
                     }
                 }
 
-                Picker("Nombres de archivos", selection: $preferences.namingConvention) {
+                Picker(t("settings.file_names"), selection: $preferences.namingConvention) {
                     ForEach(ExportNamingConvention.allCases) { convention in
                         Text(convention.displayName).tag(convention)
                     }
                 }
 
-                LabeledContent("Ejemplo") {
+                LabeledContent(t("settings.example")) {
                     Text(
                         "\(preferences.namingConvention.example).\(preferences.outputFormat.fileExtension)"
                     )
@@ -78,15 +87,15 @@ struct SettingsView: View {
             refreshCacheSize()
         }
         .alert(
-            "¿Limpiar toda la caché?",
+            t("settings.clear_cache_title"),
             isPresented: $showsClearCacheConfirmation
         ) {
-            Button("Cancelar", role: .cancel) {}
-            Button("Limpiar caché", role: .destructive) {
+            Button(t("settings.cancel"), role: .cancel) {}
+            Button(t("settings.clear_cache"), role: .destructive) {
                 clearCache()
             }
         } message: {
-            Text("Los audios de YouTube deberán descargarse nuevamente. Los proyectos y recortes no se eliminarán.")
+            Text(t("settings.clear_cache_message"))
         }
     }
 
@@ -103,10 +112,10 @@ struct SettingsView: View {
                     .lineLimit(1)
                     .truncationMode(.middle)
                     .frame(maxWidth: 380, alignment: .trailing)
-                Button("Abrir") {
+                Button(t("settings.open")) {
                     preferences.openDirectory(url)
                 }
-                Button("Cambiar…", action: choose)
+                Button(t("settings.change"), action: choose)
             }
         }
     }
@@ -118,10 +127,14 @@ struct SettingsView: View {
     private func clearCache() {
         do {
             try preferences.clearCache()
-            cacheMessage = "Caché limpiada"
+            cacheMessage = t("settings.cache_cleared")
         } catch {
             cacheMessage = error.localizedDescription
         }
         refreshCacheSize()
+    }
+
+    private func t(_ key: String) -> String {
+        L10n.string(key, language: preferences.language)
     }
 }

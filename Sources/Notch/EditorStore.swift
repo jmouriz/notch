@@ -9,7 +9,7 @@ final class EditorStore {
     var librarySelection: LibraryDestination = .current
     var projectCatalog: [ProjectCatalogEntry] = []
     var sourceURL = ""
-    var projectName = "Mis recortes"
+    var projectName = ""
     var source = AudioSource.empty
     var hasLoadedSource = false
     var regions: [ClipRegion] = []
@@ -22,7 +22,7 @@ final class EditorStore {
     var exportProgress: Double = 0
     var isAnalyzingWaveform = false
     var waveformSamples: [CGFloat] = []
-    var statusMessage = "Listo para editar"
+    var statusMessage = ""
     var zoom: Double = 1
     var exportDirectoryURL: URL?
     var currentProjectURL: URL?
@@ -46,7 +46,28 @@ final class EditorStore {
         self.userDefaults = userDefaults
         preferences = AppPreferences(userDefaults: userDefaults)
         projectCatalog = Self.loadProjectCatalog(from: userDefaults)
+        projectName = L10n.string("default.project_name", language: preferences.language)
+        statusMessage = L10n.string("status.ready", language: preferences.language)
         selectedRegionID = regions.first?.id
+    }
+
+    func t(_ key: String, _ arguments: CVarArg...) -> String {
+        let format = L10n.string(key, language: preferences.language)
+        return String(
+            format: format,
+            locale: preferences.language.locale,
+            arguments: arguments
+        )
+    }
+
+    func languageDidChange() {
+        let defaultNames = AppLanguage.allCases.map {
+            L10n.string("default.project_name", language: $0)
+        }
+        if !hasLoadedSource && defaultNames.contains(projectName) {
+            projectName = t("default.project_name")
+        }
+        statusMessage = t("status.ready")
     }
 
     var recentProjects: [ProjectCatalogEntry] {
@@ -60,7 +81,7 @@ final class EditorStore {
     func resetProject() {
         librarySelection = .current
         sourceURL = ""
-        projectName = "Mis recortes"
+        projectName = t("default.project_name")
         source = .empty
         hasLoadedSource = false
         regions = []
@@ -76,7 +97,7 @@ final class EditorStore {
         zoom = 1
         exportDirectoryURL = nil
         currentProjectURL = nil
-        statusMessage = "Nuevo proyecto"
+        statusMessage = t("status.new_project")
         releasePlayer()
     }
 
@@ -85,14 +106,14 @@ final class EditorStore {
         librarySelection = .current
         let trimmed = sourceURL.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let url = URL(string: trimmed), url.scheme != nil else {
-            statusMessage = "Introducí una dirección válida"
+            statusMessage = t("status.invalid_url")
             NSSound.beep()
             return
         }
 
         isImporting = true
         importProgress = 0
-        statusMessage = "Consultando la fuente…"
+        statusMessage = t("status.checking_source")
         Task {
             do {
                 let imported = try await importService.importRemoteURL(
@@ -103,11 +124,11 @@ final class EditorStore {
                         guard let self, self.isImporting else { return }
                         self.importProgress = progress
                         if progress < 0.10 {
-                            self.statusMessage = "Buscando en caché…"
+                            self.statusMessage = self.t("status.searching_cache")
                         } else if progress < 1 {
-                            self.statusMessage = "Descargando audio… \(Int(progress * 100))%"
+                            self.statusMessage = self.t("status.downloading", Int(progress * 100))
                         } else {
-                            self.statusMessage = "Preparando audio…"
+                            self.statusMessage = self.t("status.preparing_audio")
                         }
                     }
                 }
@@ -115,8 +136,8 @@ final class EditorStore {
                 currentProjectURL = nil
                 exportDirectoryURL = nil
                 statusMessage = imported.wasCached
-                    ? "Audio cargado desde caché"
-                    : "Audio descargado y guardado en caché"
+                    ? t("status.cached_audio")
+                    : t("status.downloaded_audio")
             } catch {
                 isImporting = false
                 importProgress = nil
@@ -130,7 +151,7 @@ final class EditorStore {
         guard !isImporting, !isExporting else { return }
         librarySelection = .current
         let panel = NSOpenPanel()
-        panel.title = "Seleccionar audio o video"
+        panel.title = t("panel.select_media")
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         panel.allowedContentTypes = [.audio, .movie, .mpeg4Movie]
@@ -138,14 +159,14 @@ final class EditorStore {
         guard panel.runModal() == .OK, let url = panel.url else { return }
         isImporting = true
         importProgress = nil
-        statusMessage = "Leyendo archivo…"
+        statusMessage = t("status.reading_file")
         Task {
             do {
                 let imported = try await importService.importLocalFile(url)
                 apply(imported)
                 currentProjectURL = nil
                 exportDirectoryURL = nil
-                statusMessage = "Archivo listo para editar"
+                statusMessage = t("status.file_ready")
             } catch {
                 isImporting = false
                 importProgress = nil
@@ -157,7 +178,7 @@ final class EditorStore {
 
     func togglePlayback() {
         guard let player else {
-            statusMessage = "Primero cargá una fuente de audio"
+            statusMessage = t("status.load_source_first")
             return
         }
 
@@ -165,14 +186,14 @@ final class EditorStore {
         if isPlaying {
             player.pause()
             isPlaying = false
-            statusMessage = "Pausado"
+            statusMessage = t("status.paused")
         } else {
             if playhead >= source.duration - 0.01 {
                 seek(to: 0)
             }
             player.play()
             isPlaying = true
-            statusMessage = "Reproduciendo"
+            statusMessage = t("status.playing")
         }
     }
 
@@ -188,7 +209,7 @@ final class EditorStore {
 
     func addRegionAtPlayhead() {
         guard hasLoadedSource, source.duration > 0 else {
-            statusMessage = "Primero cargá una fuente de audio"
+            statusMessage = t("status.load_source_first")
             return
         }
         let start = min(playhead, max(0, source.duration - 10))
@@ -204,19 +225,23 @@ final class EditorStore {
         let region = ClipRegion(
             start: start,
             end: end,
-            name: "Recorte \(regions.count + 1)",
+            name: t("default.clip_name", regions.count + 1),
             colorIndex: regions.count
         )
         regions.append(region)
         selectedRegionID = region.id
         seek(to: start)
-        statusMessage = "Región creada desde \(Timecode.string(from: start)) hasta \(Timecode.string(from: end))"
+        statusMessage = t(
+            "status.region_created",
+            Timecode.string(from: start),
+            Timecode.string(from: end)
+        )
     }
 
     func deleteRegion(_ id: ClipRegion.ID) {
         regions.removeAll { $0.id == id }
         selectedRegionID = regions.first?.id
-        statusMessage = "Región eliminada"
+        statusMessage = t("status.region_deleted")
     }
 
     func updateRegion(_ updated: ClipRegion) {
@@ -234,13 +259,18 @@ final class EditorStore {
         updateRegion(region)
         selectedRegionID = id
         if let updated = regions.first(where: { $0.id == id }) {
-            statusMessage = "“\(updated.name)” actualizado: \(Timecode.string(from: updated.start)) → \(Timecode.string(from: updated.end))"
+            statusMessage = t(
+                "status.region_updated",
+                updated.name,
+                Timecode.string(from: updated.start),
+                Timecode.string(from: updated.end)
+            )
         }
     }
 
     func preview(_ region: ClipRegion) {
         guard let player else {
-            statusMessage = "No hay audio disponible para previsualizar"
+            statusMessage = t("status.no_preview_audio")
             return
         }
         selectedRegionID = region.id
@@ -248,7 +278,7 @@ final class EditorStore {
         previewEnd = region.end
         player.play()
         isPlaying = true
-        statusMessage = "Previsualizando “\(region.name)”"
+        statusMessage = t("status.previewing", region.name)
     }
 
     func previewSelectedRegion() {
@@ -279,7 +309,7 @@ final class EditorStore {
                 : nil
         }
         guard !jobs.isEmpty else {
-            statusMessage = "No hay regiones habilitadas para exportar"
+            statusMessage = t("status.no_enabled_regions")
             return
         }
 
@@ -290,7 +320,7 @@ final class EditorStore {
 
         isExporting = true
         exportProgress = 0
-        statusMessage = "Exportando recortes…"
+        statusMessage = t("status.exporting")
         Task {
             do {
                 let exportedURLs = try await exportService.export(
@@ -302,12 +332,17 @@ final class EditorStore {
                     Task { @MainActor [weak self] in
                         guard let self, self.isExporting else { return }
                         self.exportProgress = progress
-                        self.statusMessage = "Exportando recortes… \(Int(progress * 100))%"
+                        self.statusMessage = self.t(
+                            "status.exporting_percent",
+                            Int(progress * 100)
+                        )
                     }
                 }
                 isExporting = false
                 exportProgress = 1
-                statusMessage = "\(exportedURLs.count) \(exportedURLs.count == 1 ? "recorte exportado" : "recortes exportados")"
+                statusMessage = exportedURLs.count == 1
+                    ? t("status.exported_one")
+                    : t("status.exported_many", exportedURLs.count)
                 NSWorkspace.shared.activateFileViewerSelecting(exportedURLs)
             } catch {
                 isExporting = false
@@ -322,7 +357,10 @@ final class EditorStore {
         guard !isExporting else { return }
         if let directory = promptForExportDirectory() {
             exportDirectoryURL = directory
-            statusMessage = "Destino: \(directory.path(percentEncoded: false))"
+            statusMessage = t(
+                "status.destination",
+                directory.path(percentEncoded: false)
+            )
         }
     }
 
@@ -342,8 +380,8 @@ final class EditorStore {
         }
 
         let panel = NSSavePanel()
-        panel.title = "Guardar proyecto de Notch"
-        panel.prompt = "Guardar"
+        panel.title = t("panel.save_project")
+        panel.prompt = t("panel.save")
         panel.allowedContentTypes = [.notchProject]
         panel.canCreateDirectories = true
         panel.nameFieldStringValue = "\(safeProjectFilename()).notch"
@@ -357,8 +395,8 @@ final class EditorStore {
         guard !isImporting, !isExporting else { return }
 
         let panel = NSOpenPanel()
-        panel.title = "Abrir proyecto de Notch"
-        panel.prompt = "Abrir"
+        panel.title = t("panel.open_project")
+        panel.prompt = t("panel.open")
         panel.allowedContentTypes = [.notchProject, .json]
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = false
@@ -385,7 +423,7 @@ final class EditorStore {
     ) {
         isImporting = true
         importProgress = document.source.kind == .remote ? 0 : nil
-        statusMessage = "Abriendo proyecto…"
+        statusMessage = t("status.opening_project")
 
         Task {
             do {
@@ -411,8 +449,8 @@ final class EditorStore {
                             guard let self, self.isImporting else { return }
                             self.importProgress = progress
                             self.statusMessage = progress < 0.10
-                                ? "Buscando la fuente en caché…"
-                                : "Recuperando la fuente… \(Int(progress * 100))%"
+                                ? self.t("status.searching_project_source")
+                                : self.t("status.recovering_source", Int(progress * 100))
                         }
                     }
                 }
@@ -434,7 +472,7 @@ final class EditorStore {
                     : ""
                 seek(to: document.playhead)
                 registerProject(document, at: projectURL)
-                statusMessage = "Proyecto “\(document.name)” abierto"
+                statusMessage = t("status.project_opened", document.name)
             } catch {
                 isImporting = false
                 importProgress = nil
@@ -450,7 +488,7 @@ final class EditorStore {
             try document.write(to: url)
             currentProjectURL = url
             registerProject(document, at: url)
-            statusMessage = "Proyecto guardado en \(url.lastPathComponent)"
+            statusMessage = t("status.project_saved", url.lastPathComponent)
         } catch {
             statusMessage = error.localizedDescription
             NSSound.beep()
@@ -501,9 +539,9 @@ final class EditorStore {
 
     private func promptForExportDirectory() -> URL? {
         let panel = NSOpenPanel()
-        panel.title = "Elegir carpeta para los recortes"
-        panel.prompt = "Usar esta carpeta"
-        panel.message = "Notch recordará este destino en el archivo del proyecto."
+        panel.title = t("panel.export_folder")
+        panel.prompt = t("panel.use_folder")
+        panel.message = t("panel.remember_destination")
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.canCreateDirectories = true
@@ -546,13 +584,13 @@ final class EditorStore {
             .components(separatedBy: invalid)
             .joined(separator: "-")
             .trimmingCharacters(in: .whitespacesAndNewlines)
-        return cleaned.isEmpty ? "Proyecto Notch" : cleaned
+        return cleaned.isEmpty ? t("default.project_file") : cleaned
     }
 
     func openCatalogEntry(_ entry: ProjectCatalogEntry) {
         guard FileManager.default.fileExists(atPath: entry.projectPath) else {
             removeCatalogEntry(entry)
-            statusMessage = "El archivo del proyecto ya no está disponible"
+            statusMessage = t("status.project_missing")
             NSSound.beep()
             return
         }
@@ -575,7 +613,7 @@ final class EditorStore {
     func revealCatalogEntry(_ entry: ProjectCatalogEntry) {
         guard FileManager.default.fileExists(atPath: entry.projectPath) else {
             removeCatalogEntry(entry)
-            statusMessage = "El archivo del proyecto ya no está disponible"
+            statusMessage = t("status.project_missing")
             return
         }
         NSWorkspace.shared.activateFileViewerSelecting([entry.projectURL])
@@ -641,7 +679,9 @@ final class EditorStore {
         let base = projectName.trimmingCharacters(in: .whitespacesAndNewlines)
         let clip = region.name.trimmingCharacters(in: .whitespacesAndNewlines)
         let safeBase = base.isEmpty ? "Notch" : base
-        let safeClip = clip.isEmpty ? String(format: "Recorte %02d", index + 1) : clip
+        let safeClip = clip.isEmpty
+            ? t("default.clip_file", index + 1)
+            : clip
         switch preferences.namingConvention {
         case .baseDashClip:
             return "\(safeBase) - \(safeClip)"
@@ -704,7 +744,7 @@ final class EditorStore {
                 self.isPlaying = false
                 self.previewEnd = nil
                 self.playhead = self.source.duration
-                self.statusMessage = "Reproducción finalizada"
+                self.statusMessage = self.t("status.playback_finished")
             }
         }
     }
@@ -723,7 +763,7 @@ final class EditorStore {
             playhead = previewEnd
             self.previewEnd = nil
             isPlaying = false
-            statusMessage = "Previsualización finalizada"
+            statusMessage = t("status.preview_finished")
         }
     }
 
@@ -749,12 +789,12 @@ final class EditorStore {
                 guard source.localURL == url else { return }
                 waveformSamples = samples
                 isAnalyzingWaveform = false
-                statusMessage = "Forma de onda lista"
+                statusMessage = t("status.waveform_ready")
             } catch {
                 guard source.localURL == url else { return }
                 waveformSamples = []
                 isAnalyzingWaveform = false
-                statusMessage = "El audio se puede reproducir, pero no se pudo analizar su forma de onda"
+                statusMessage = t("status.waveform_failed")
             }
         }
     }

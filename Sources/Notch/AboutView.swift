@@ -3,10 +3,11 @@ import SwiftUI
 
 struct AboutCommands: Commands {
     @Environment(\.openWindow) private var openWindow
+    let preferences: AppPreferences
 
     var body: some Commands {
         CommandGroup(replacing: .appInfo) {
-            Button("Acerca de Notch") {
+            Button(L10n.string("about.menu", language: preferences.language)) {
                 openWindow(id: "about")
             }
         }
@@ -15,6 +16,7 @@ struct AboutCommands: Commands {
 
 struct AboutView: View {
     @Environment(\.dismiss) private var dismiss
+    @Bindable var preferences: AppPreferences
 
     private var version: String {
         Bundle.main.object(
@@ -31,13 +33,13 @@ struct AboutView: View {
             VStack(spacing: 4) {
                 Text("Notch")
                     .font(.system(size: 28, weight: .bold))
-                Text("Versión \(version)")
+                Text(t("about.version", version))
                     .foregroundStyle(.secondary)
             }
 
             VStack(spacing: 5) {
                 Text("© 2026 Juan Manuel Mouriz")
-                Text("Publicado bajo la licencia MIT")
+                Text(t("about.license"))
                 Link(
                     "github.com/jmouriz/notch",
                     destination: URL(string: "https://github.com/jmouriz/notch")!
@@ -47,16 +49,16 @@ struct AboutView: View {
             Divider()
 
             VStack(spacing: 7) {
-                Text("Componentes de terceros")
+                Text(t("about.third_party"))
                     .font(.headline)
                 Text("yt-dlp — The Unlicense")
                 Text("LAME — GNU LGPL 2.0")
-                Text("FFmpeg no está incluido en esta versión.")
+                Text(t("about.ffmpeg"))
                     .foregroundStyle(.secondary)
             }
             .font(.caption)
 
-            Button("Cerrar") {
+            Button(t("common.close")) {
                 dismiss()
             }
             .keyboardShortcut(.defaultAction)
@@ -64,5 +66,15 @@ struct AboutView: View {
         .multilineTextAlignment(.center)
         .padding(28)
         .frame(width: 440)
+    }
+
+    private func t(_ key: String, _ arguments: CVarArg...) -> String {
+        let format = L10n.string(key, language: preferences.language)
+        guard !arguments.isEmpty else { return format }
+        return String(
+            format: format,
+            locale: preferences.language.locale,
+            arguments: arguments
+        )
     }
 }

@@ -72,11 +72,11 @@ enum ProjectDocumentError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .noSource:
-            return "Primero cargá una fuente antes de guardar el proyecto."
+            return L10n.string("error.project_no_source")
         case .invalidSource:
-            return "La fuente guardada en el proyecto ya no está disponible."
+            return L10n.string("error.project_invalid_source")
         case .newerVersion:
-            return "Este proyecto fue creado con una versión más nueva de Notch."
+            return L10n.string("error.project_newer_version")
         }
     }
 }

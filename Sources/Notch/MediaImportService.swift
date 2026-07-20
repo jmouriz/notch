@@ -86,15 +86,15 @@ enum MediaImportError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .missingDownloader:
-            return "Notch no encontró el motor de importación incluido."
+            return L10n.string("error.missing_downloader")
         case .invalidMetadata:
-            return "No se pudieron interpretar los datos de la fuente."
+            return L10n.string("error.invalid_metadata")
         case .unsupportedAudio:
-            return "El archivo no contiene una pista de audio compatible."
+            return L10n.string("error.unsupported_audio")
         case let .commandFailed(message):
-            return message.isEmpty ? "La importación no pudo completarse." : message
+            return message.isEmpty ? L10n.string("error.import_failed") : message
         case .downloadedFileMissing:
-            return "La descarga terminó, pero no se encontró el archivo de audio."
+            return L10n.string("error.download_missing")
         }
     }
 }

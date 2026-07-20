@@ -16,6 +16,7 @@ import Testing
     preferences.exportDirectoryURL = root.appendingPathComponent("Exports", isDirectory: true)
     preferences.outputFormat = .mp3
     preferences.namingConvention = .clipParenthesizedBase
+    preferences.language = .portuguese
 
     let restored = AppPreferences(userDefaults: defaults)
     #expect(restored.cacheDirectoryURL.lastPathComponent == "Cache")
@@ -23,6 +24,7 @@ import Testing
     #expect(restored.exportDirectoryURL.lastPathComponent == "Exports")
     #expect(restored.outputFormat == .mp3)
     #expect(restored.namingConvention == .clipParenthesizedBase)
+    #expect(restored.language == .portuguese)
 }
 
 @MainActor

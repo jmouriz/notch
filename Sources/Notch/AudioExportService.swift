@@ -24,13 +24,13 @@ enum AudioExportError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .missingAudio:
-            return "No hay un archivo de audio cargado para exportar."
+            return L10n.string("error.missing_audio")
         case .cannotCreateExporter:
-            return "Este archivo no se puede convertir al formato elegido."
+            return L10n.string("error.cannot_export")
         case .missingMP3Encoder:
-            return "Notch no encontró el codificador MP3 incluido."
+            return L10n.string("error.missing_mp3_encoder")
         case let .exportFailed(message):
-            return message.isEmpty ? "No se pudo exportar el recorte." : message
+            return message.isEmpty ? L10n.string("error.export_failed") : message
         }
     }
 }
@@ -146,7 +146,7 @@ actor AudioExportService {
                 default:
                     continuation.resume(
                         throwing: AudioExportError.exportFailed(
-                            "La exportación terminó en un estado inesperado."
+                            L10n.string("error.unexpected_export_state")
                         )
                     )
                 }

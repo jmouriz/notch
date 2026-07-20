@@ -133,7 +133,14 @@ struct TimelineView: View {
         .frame(width: size.width, height: size.height, alignment: .topLeading)
         .allowsHitTesting(false)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(region.name), desde \(Timecode.string(from: region.start)) hasta \(Timecode.string(from: region.end))")
+        .accessibilityLabel(
+            store.t(
+                "accessibility.region",
+                region.name,
+                Timecode.string(from: region.start),
+                Timecode.string(from: region.end)
+            )
+        )
     }
 
     private func resizeHandle(color: Color) -> some View {
@@ -296,7 +303,7 @@ struct TimelineView: View {
         guard let id,
               let region = store.regions.first(where: { $0.id == id }) else { return }
         store.selectedRegionID = id
-        store.statusMessage = "“\(region.name)” seleccionado desde la línea de tiempo"
+        store.statusMessage = store.t("status.timeline_selected", region.name)
     }
 
     private func canvasWidth(for viewportWidth: CGFloat) -> CGFloat {
