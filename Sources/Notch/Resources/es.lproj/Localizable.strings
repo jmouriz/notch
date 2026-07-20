@@ -3,6 +3,7 @@
 "language.spanish" = "Español";
 "language.portuguese" = "Portugués";
 "settings.language" = "Idioma";
+"settings.title" = "Configuración de Notch";
 "settings.general" = "General";
 "settings.default_folders" = "Carpetas predeterminadas";
 "settings.cache" = "Caché";

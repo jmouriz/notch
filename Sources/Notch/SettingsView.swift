@@ -81,7 +81,8 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .padding(8)
-        .frame(width: 680, height: 500)
+        .frame(width: 680, height: 600)
+        .navigationTitle(t("settings.title"))
         .onAppear(perform: refreshCacheSize)
         .onChange(of: preferences.cacheDirectoryURL) {
             refreshCacheSize()

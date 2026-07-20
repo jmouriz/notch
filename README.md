@@ -4,33 +4,43 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![macOS 14+](https://img.shields.io/badge/macOS-14%2B-black.svg)](https://www.apple.com/macos/)
 
-Notch es un editor nativo para macOS que permite importar audio local o desde
-YouTube, seleccionar múltiples fragmentos sobre la forma de onda,
-previsualizarlos y exportarlos como archivos independientes.
+Notch is a native macOS audio splitter for importing local media or YouTube
+audio, selecting multiple regions directly on a waveform, previewing them, and
+exporting each clip as a separate file.
 
-## Funcionalidades
+![Notch editor with two selected audio clips](docs/screenshots/notch-clips.png)
 
-- Importación de audio y video local.
-- Descarga desde YouTube mediante `yt-dlp`.
-- Caché configurable para evitar descargas repetidas.
-- Forma de onda real, zoom, cabezal y reproducción.
-- Selección, movimiento y ajuste preciso de múltiples recortes.
-- Campos de tiempo editables y nombres individuales.
-- Exportación a M4A, MP3 y WAV.
-- Tres convenciones configurables para nombres y subcarpetas.
-- Proyectos JSON con extensión `.notch`.
-- Biblioteca persistente de proyectos recientes y conservados.
-- Configuración nativa para caché, biblioteca y exportaciones.
-- Interfaz en inglés, español y portugués, con detección automática del idioma
-  de macOS y selección manual desde Configuración.
+## Features
 
-## Requisitos
+- Import local audio and video files.
+- Download audio from YouTube with the bundled `yt-dlp`.
+- Configurable media cache to avoid repeated downloads.
+- Real waveform visualization with zoom, playhead, and playback controls.
+- Create regions by dragging directly on the timeline.
+- Move regions and adjust their start and end handles visually.
+- Enter exact timestamps and individual clip names.
+- Preview any region before exporting.
+- Export to M4A, MP3, or WAV.
+- Choose from three configurable file and folder naming conventions.
+- Save all project metadata in portable `.notch` JSON files.
+- Browse recent and pinned projects from the built-in library.
+- Configure default cache, library, and export folders.
+- Use the interface in English, Spanish, or Portuguese, with automatic system
+  language detection and an in-app language selector.
 
-- macOS 14 o posterior.
-- Apple Silicon para la distribución precompilada actual.
-- Xcode con Swift 6 para compilar el proyecto.
+## Screenshots
 
-## Ejecutar desde el código fuente
+| Start screen | Settings |
+| --- | --- |
+| ![Notch start screen](docs/screenshots/notch-start.png) | ![Notch settings](docs/screenshots/notch-settings.png) |
+
+## Requirements
+
+- macOS 14 Sonoma or later.
+- Apple Silicon for the current prebuilt distribution.
+- Xcode with Swift 6 to build from source.
+
+## Run from source
 
 ```bash
 git clone https://github.com/jmouriz/notch.git
@@ -38,59 +48,59 @@ cd notch
 swift run Notch
 ```
 
-También se puede abrir `Package.swift` directamente con Xcode y ejecutar el
-esquema `Notch`.
+You can also open `Package.swift` directly in Xcode and run the `Notch`
+scheme.
 
-## Pruebas
+## Tests
 
 ```bash
 swift test
 ```
 
-Las pruebas cubren importación, caché, reproducción, selección temporal,
-proyectos, biblioteca, preferencias, traducciones y exportaciones reales en
-los tres formatos.
+The test suite covers local import, YouTube cache lookup, playback, timeline
+hit testing, manual time editing, project persistence, the project library,
+preferences, localization, and real audio exports.
 
-## Crear la aplicación y el DMG
+## Build the app and DMG
 
 ```bash
 ./Packaging/package-release.sh
 ```
 
-El script genera:
+The packaging script creates:
 
 ```text
 build/Notch.app
 build/Notch-0.1.0.dmg
 ```
 
-El paquete de desarrollo utiliza firma ad hoc. Para distribuir públicamente se
-debe configurar una identidad Developer ID y notarizar la aplicación.
+Development builds use ad hoc code signing. Public distribution requires an
+Apple Developer ID certificate and notarization.
 
-## Atajos
+## Keyboard shortcuts
 
-| Acción | Atajo |
+| Action | Shortcut |
 | --- | --- |
-| Nuevo proyecto | `⌘N` |
-| Abrir proyecto | `⌘O` |
-| Abrir audio o video | `⇧⌘O` |
-| Guardar proyecto | `⌘S` |
-| Guardar como | `⇧⌘S` |
-| Configuración | `⌘,` |
-| Nueva región | `⌘R` |
-| Previsualizar región | `Espacio` |
+| New project | `⌘N` |
+| Open project | `⌘O` |
+| Open audio or video | `⇧⌘O` |
+| Save project | `⌘S` |
+| Save project as | `⇧⌘S` |
+| Settings | `⌘,` |
+| New region | `⌘R` |
+| Preview selected region | `Space` |
 
-## Componentes incluidos
+## Included components
 
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp), publicado bajo The Unlicense.
-- [LAME](https://lame.sourceforge.io/), publicado bajo GNU LGPL 2.0.
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp), released under The Unlicense.
+- [LAME](https://lame.sourceforge.io/), released under the GNU LGPL 2.0.
 
-FFmpeg no está incluido ni se invoca en esta versión. M4A y WAV utilizan los
-frameworks multimedia nativos de macOS. Los avisos y textos completos están en
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+FFmpeg is not bundled or invoked by this version. M4A and WAV exports use the
+native macOS media frameworks. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+for notices and full license texts.
 
-## Licencia
+## License
 
-Notch está publicado bajo la [licencia MIT](LICENSE).
+Notch is released under the [MIT License](LICENSE).
 
 Copyright © 2026 Juan Manuel Mouriz.

@@ -3,6 +3,7 @@
 "language.spanish" = "Espanhol";
 "language.portuguese" = "Português";
 "settings.language" = "Idioma";
+"settings.title" = "Ajustes do Notch";
 "settings.general" = "Geral";
 "settings.default_folders" = "Pastas padrão";
 "settings.cache" = "Cache";

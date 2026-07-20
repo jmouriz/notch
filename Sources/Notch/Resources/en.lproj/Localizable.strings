@@ -3,6 +3,7 @@
 "language.spanish" = "Spanish";
 "language.portuguese" = "Portuguese";
 "settings.language" = "Language";
+"settings.title" = "Notch Settings";
 "settings.general" = "General";
 "settings.default_folders" = "Default folders";
 "settings.cache" = "Cache";
