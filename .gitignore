@@ -1,0 +1,33 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Swift Package Manager
+/.build/
+/.swiftpm/
+
+# Xcode
+DerivedData/
+xcuserdata/
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
+
+# Release artifacts
+/build/
+*.app
+*.dmg
+
+# Editors and local environment
+.idea/
+.vscode/
+*.swp
+*.swo
+.env
+.env.*
+
+# Temporary files
+*.tmp
+*.log
+*~

@@ -1,0 +1,9 @@
+* text=auto eol=lf
+
+*.png binary
+*.icns binary
+*.dmg binary
+Sources/Notch/Resources/Tools/yt-dlp binary
+Sources/Notch/Resources/Tools/lame binary
+Sources/Notch/Resources/Tools/lame-COPYING.txt whitespace=-blank-at-eol,-space-before-tab
+Sources/Notch/Resources/Tools/lame-LICENSE.txt whitespace=-blank-at-eol,-space-before-tab
