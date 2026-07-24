@@ -80,6 +80,13 @@ fi
 
 MOUNTED_VOLUME_NAME="${MOUNT_POINT:t}"
 osascript "$ROOT/Packaging/configure-dmg.applescript" "$MOUNTED_VOLUME_NAME"
+
+cp "$CONTENTS/Resources/Notch.icns" "$MOUNT_POINT/.VolumeIcon.icns"
+chflags hidden "$MOUNT_POINT/.VolumeIcon.icns"
+SetFile -c icnC "$MOUNT_POINT/.VolumeIcon.icns"
+SetFile -a V "$MOUNT_POINT/.VolumeIcon.icns"
+SetFile -a C "$MOUNT_POINT"
+
 rm -rf "$MOUNT_POINT/.fseventsd"
 sync
 hdiutil detach "$MOUNT_POINT"
